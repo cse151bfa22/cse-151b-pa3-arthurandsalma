@@ -25,8 +25,42 @@ class CustomCNN(nn.Module):
                        should map its input to
         '''
         super(CustomCNN, self).__init__()
-        # TODO
-        raise NotImplementedError()
+       
+        self.cnn_layers = Sequential(
+            # Defining a first 2D convolution layer
+            Conv2d(out_channels= 64, kernel_size= 11, stride=1),
+            BatchNorm2d(4),
+            ReLU(inplace=True),
+            MaxPool1d(kernel_size=2, stride=2),
+            # Defining another 2D  layer
+            Conv2d(out_channels = 128, kernel_size=5, padding=2),
+            BatchNorm2d(4),
+            ReLU(inplace=True),
+            MaxPool2d(kernel_size=3, stride=2),
+            # Defining another 2D  layer
+            Conv2d(out_channels = 256, kernel_size=3, padding=1),
+            BatchNorm2d(4),
+            ReLU(inplace=True),
+            # Defining another 2D  layer
+            Conv2d(out_channels = 256, kernel_size=3, padding=1),
+            BatchNorm2d(4),
+            ReLU(inplace=True),
+            # Defining another 2D  layer
+            Conv2d(out_channels = 128, kernel_size=3, padding=1),
+            BatchNorm2d(4),
+            ReLU(inplace=True),
+            MaxPool2d(kernel_size=3, stride=2),
+            AdaptiveAvgPool2d(kernel_size = 1),
+        )
+            
+    self.linear_layers = Sequential(
+            Linear(out_features = 1024),
+            ReLU(inplace=True),
+            Linear(out_features = 1024),
+            ReLU(inplace=True),
+            Linear(out_features = 300),
+        )
+
 
     def forward(self, x):
         '''
@@ -36,8 +70,10 @@ class CustomCNN(nn.Module):
         Parameters:
             x => Input to the CNN
         '''
-        # TODO
-        raise NotImplementedError()
+        x = self.cnn_layers(x)
+        x = x.view(x.size(0), -1)
+        x = self.linear_layers(x)
+        return x
 
 
 class CNN_LSTM(nn.Module):
