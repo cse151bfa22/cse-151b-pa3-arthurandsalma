@@ -102,21 +102,8 @@ class CNN_LSTM(nn.Module):
             - Pass output from previous time step through the LSTM at subsequent time steps
             - Generate predicted caption from the output based on whether we are generating them deterministically or not.
         '''
-             '''
-        x = F.relu(self.norm(self.conv1(x)))
-        x = self.maxpool1(x)
-        x = F.relu(self.norm(self.conv2(x)))
-        x = self.maxpool2(x)
-        x = F.relu(self.norm(self.conv3(x)))
-        x = F.relu(self.norm(self.conv4(x)))
-        x = F.relu(self.norm(self.conv5(x)))
-        x = self.maxpool2(x)
-        x = self.avgpool(x)
+        #to do 
         
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        
-        return  self.fc3(x)
 
 
 def get_model(config_data, vocab):
