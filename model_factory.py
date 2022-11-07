@@ -70,10 +70,8 @@ class CustomCNN(nn.Module):
         Parameters:
             x => Input to the CNN
         '''
-        x = self.cnn_layers(x)
-        x = x.view(x.size(0), -1)
-        x = self.linear_layers(x)
-        return x
+         # TODO
+        raise NotImplementedError()
 
 
 class CNN_LSTM(nn.Module):
