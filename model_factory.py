@@ -86,8 +86,9 @@ class CNN_LSTM(nn.Module):
         self.deterministic = config_data['generation']['deterministic']
         self.temp = config_data['generation']['temperature']
 
-        # TODO
-        raise NotImplementedError()
+        self.embed = nn.Embedding(self.vocab, self.embedding_size)
+        self.lstm = nn.LSTM(self.embedding_size, self.hidden_size, num_layers, batch_first=True)
+
 
 
     def forward(self, images, captions, teacher_forcing=False):
