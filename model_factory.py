@@ -27,7 +27,7 @@ class CustomCNN(nn.Module):
         super(CustomCNN, self).__init__()
         
         self.conv1 = nn.Conv2d(out_channels= 64, kernel_size= 11, stride=1)
-        self.maxpool1 = nn.MaxPool2d(kernel_size=3, stride=2)
+        self.maxpool1 = nn.MaxPool1d(kernel_size=3, stride=2)
         self.batchnorm = nn.BatchNorm2d(num_features)
         self.maxpool2 = nn.MaxPool2d(kernel_size=3, stride=2)
         self.conv2= Conv2d(out_channels = 128, kernel_size=5, padding=2)
@@ -50,8 +50,21 @@ class CustomCNN(nn.Module):
         Parameters:
             x => Input to the CNN
         '''
-         # TODO
-        raise NotImplementedError()
+        
+        x = F.relu(self.norm(self.conv1(x)))
+        x = self.maxpool1(x)
+        x = F.relu(self.norm(self.conv2(x)))
+        x = self.maxpool2(x)
+        x = F.relu(self.norm(self.conv3(x)))
+        x = F.relu(self.norm(self.conv4(x)))
+        x = F.relu(self.norm(self.conv5(x)))
+        x = self.maxpool2(x)
+        x = self.avgpool(x)
+        
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        
+        return  self.fc3(x)
 
 
 class CNN_LSTM(nn.Module):
@@ -88,8 +101,21 @@ class CNN_LSTM(nn.Module):
             - Pass output from previous time step through the LSTM at subsequent time steps
             - Generate predicted caption from the output based on whether we are generating them deterministically or not.
         '''
-        # TODO
-        raise NotImplementedError()
+             '''
+        x = F.relu(self.norm(self.conv1(x)))
+        x = self.maxpool1(x)
+        x = F.relu(self.norm(self.conv2(x)))
+        x = self.maxpool2(x)
+        x = F.relu(self.norm(self.conv3(x)))
+        x = F.relu(self.norm(self.conv4(x)))
+        x = F.relu(self.norm(self.conv5(x)))
+        x = self.maxpool2(x)
+        x = self.avgpool(x)
+        
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        
+        return  self.fc3(x)
 
 
 def get_model(config_data, vocab):
