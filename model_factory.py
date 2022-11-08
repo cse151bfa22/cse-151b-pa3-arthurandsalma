@@ -88,7 +88,7 @@ class CNN_LSTM(nn.Module):
 
         self.embed = nn.Embedding(self.vocab, self.embedding_size)
         self.lstm = nn.LSTM(self.embedding_size, self.hidden_size, num_layers, batch_first=True)
-
+        self.softmax = nn.softmax(self.hidden_size, len(self.vocab))
 
 
     def forward(self, images, captions, teacher_forcing=False):
@@ -102,9 +102,25 @@ class CNN_LSTM(nn.Module):
             - Pass output from previous time step through the LSTM at subsequent time steps
             - Generate predicted caption from the output based on whether we are generating them deterministically or not.
         '''
-        #to do 
-        
+        description = ['<start>']
+       
+        for word in captions :
+            word = F.one_hot(word)
+            if teacher_forcing == True : 
+                inputs = self.embed(word)
+                hiddens, _ = self.lstm(inputs,description[-1])
+                outputs = self.softmax(hiddens)
 
+            if teacher_forcing == False:
+                inputs = self.embed(word)
+                hiddens, _ = self.lstm(inputs)
+                outputs = self.softmax(hiddens)
+                
+            description += [outputs]
+                
+        description += ['end']
+        
+        return description 
 
 def get_model(config_data, vocab):
     '''
