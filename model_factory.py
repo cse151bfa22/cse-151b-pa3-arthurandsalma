@@ -102,10 +102,12 @@ class CNN_LSTM(nn.Module):
             - Pass output from previous time step through the LSTM at subsequent time steps
             - Generate predicted caption from the output based on whether we are generating them deterministically or not.
         '''
+  
         description = ['<start>']
-       
-        for word in captions :
-            word = F.one_hot(word)
+        
+        features = self.CustomCNN(images)
+        
+        for word in captions:
             if teacher_forcing == True : 
                 inputs = self.embed(word)
                 hiddens, _ = self.lstm(inputs,description[-1])
@@ -121,6 +123,7 @@ class CNN_LSTM(nn.Module):
         description += ['end']
         
         return description 
+    
 
 def get_model(config_data, vocab):
     '''
