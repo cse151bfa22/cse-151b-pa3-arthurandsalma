@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+
 class CustomCNN(nn.Module):
     '''
     A Custom CNN (Task 1) implemented using PyTorch modules based on the architecture in the PA writeup. 
@@ -26,20 +27,20 @@ class CustomCNN(nn.Module):
         '''
         super(CustomCNN, self).__init__()
         
-        self.conv1 = nn.Conv2d(out_channels= 64, kernel_size= 11, stride=1)
-        self.maxpool1 = nn.MaxPool1d(kernel_size=3, stride=2)
-        self.batchnorm = nn.BatchNorm2d(num_features)
+        self.conv1 = nn.Conv2d(out_channels=64, kernel_size=11, stride=1, in_channels=3)
+        self.maxpool1 = nn.MaxPool2d(kernel_size=3, stride=2)
+        self.batchnorm = nn.BatchNorm2d(outputs)
         self.maxpool2 = nn.MaxPool2d(kernel_size=3, stride=2)
-        self.conv2= Conv2d(out_channels = 128, kernel_size=5, padding=2)
-        self.conv3 = Conv2d(out_channels = 256, kernel_size=3, padding=1)
-        self.conv4 = Conv2d(out_channels = 256, kernel_size=3, padding=1)
-        self.conv5 = Conv2d(out_channels = 128, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(out_channels=128, kernel_size=5, padding=2, in_channels=64)
+        self.conv3 = nn.Conv2d(out_channels=256, kernel_size=3, padding=1, in_channels=128)
+        self.conv4 = nn.Conv2d(out_channels=256, kernel_size=3, padding=1, in_channels=256)
+        self.conv5 = nn.Conv2d(out_channels=128, kernel_size=3, padding=1, in_channels=256)
         self.maxpool2 = nn.MaxPool2d(kernel_size=3, stride=2)    
-        self.avgpool = AdaptiveAvgPool2d(kernel_size = 1)
+        self.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
         
-        self.fc1 = nn.Linear(out_features = 1024)
-        self.fc2 = Linear(out_features = 1024)
-        self.fc3 = Linear(out_features = 300)
+        self.fc1 = nn.Linear(in_features=128, out_features=1024)
+        self.fc2 = nn.Linear(in_features=1024, out_features=1024)
+        self.fc3 = nn.Linear(in_features=1024, out_features=outputs)
 
 
     def forward(self, x):
@@ -64,7 +65,7 @@ class CustomCNN(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         
-        return  self.fc3(x)
+        return self.fc3(x)
 
 
 class CNN_LSTM(nn.Module):
@@ -86,9 +87,9 @@ class CNN_LSTM(nn.Module):
         self.deterministic = config_data['generation']['deterministic']
         self.temp = config_data['generation']['temperature']
 
-        self.embed = nn.Embedding(self.vocab, self.embedding_size)
-        self.lstm = nn.LSTM(self.embedding_size, self.hidden_size, num_layers, batch_first=True)
-        self.softmax = nn.softmax(self.hidden_size, len(self.vocab))
+        self.embed = nn.Embedding(len(self.vocab), self.embedding_size)
+        self.lstm = nn.LSTM(self.embedding_size, self.hidden_size, 512, batch_first=True, proj_size=self.embedding_size)
+        self.softmax = nn.Softmax(self.embedding_size)
 
 
     def forward(self, images, captions, teacher_forcing=False):
@@ -102,28 +103,31 @@ class CNN_LSTM(nn.Module):
             - Pass output from previous time step through the LSTM at subsequent time steps
             - Generate predicted caption from the output based on whether we are generating them deterministically or not.
         '''
-  
-        description = ['<start>']
-        
-        features = self.CustomCNN(images)
-        
-        for word in captions:
-            if teacher_forcing == True : 
-                inputs = self.embed(word)
-                hiddens, _ = self.lstm(inputs,description[-1])
-                outputs = self.softmax(hiddens)
+        def out_to_word(r):
+            p = torch.rand(1)[0]
+            i = 0
+            while True:
+                if p < r[i]:
+                    return self.vocab.idx2word[i]
+                p -= r[i]
+                i += 1
 
-            if teacher_forcing == False:
-                inputs = self.embed(word)
-                hiddens, _ = self.lstm(inputs)
-                outputs = self.softmax(hiddens)
-                
-            description += [outputs]
-                
-        description += ['end']
-        
-        return description 
-    
+        out, (h, c) = self.lstm(images)
+        s = self.softmax(out)
+        res = [out_to_word(s)]
+        i = 0
+        while True:
+            wordidx = captions[0][len(res) - 1] if teacher_forcing else res[-1]
+            input = self.embed(wordidx)
+            out, (h, c) = self.lstm(input, (h, c))
+            s = self.softmax(out)
+            w = out_to_word(s)
+            res.append(w)
+            i += 1
+            if w == "<end>" or i > 20:
+                break
+
+        return res
 
 def get_model(config_data, vocab):
     '''
