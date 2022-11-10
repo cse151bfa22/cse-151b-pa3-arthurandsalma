@@ -160,7 +160,7 @@ class Experiment(object):
                 run_avg_loss = run_loss / ((i % 1000) * 1000)
                 print(run_avg_loss)
         
-        train_loss = run_loss / self.__batch_size
+        train_loss = run_loss / len(self.__train_loader)
         return train_loss
 
     def __generate_captions(self, img_id, outputs, testing):
@@ -199,19 +199,42 @@ class Experiment(object):
         """
         Validate the model for one epoch using teacher forcing
         """
-        self.__train()
+        run_loss = 0
+        for i, data in enumerate(self.__val_loader):
+            inputs, labels = data
+            
+            outputs = self.__model(inputs)
+            loss = self.__compute_loss()
 
+            run_loss += loss
 
-        # TODO
+            if i % 200:
+                run_avg_loss = run_loss / ((i % 200) * 200)
+                print(run_avg_loss)
         
-        raise NotImplementedError()
+        val_loss = run_loss / len(self.__val_loader)
+        return val_loss
 
     def test(self):
         """
         Test the best model on test data. Generate captions and calculate bleu scores
         """
         # TODO
-        raise NotImplementedError()
+        run_loss = 0
+        for i, data in enumerate(self.__test_loader):
+            inputs, labels = data
+
+            outputs = self.__model(inputs)
+            loss = self.__compute_loss()
+
+            run_loss += loss
+
+            if i % 200:
+                run_avg_loss = run_loss / ((i % 200) * 200)
+                print(run_avg_loss)
+        
+        test_loss = run_loss / len(self.__test_loader)
+        return test_loss
 
     def __save_model(self):
         root_model_path = os.path.join(self.__experiment_dir, 'latest_model.pt')
