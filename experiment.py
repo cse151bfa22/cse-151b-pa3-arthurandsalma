@@ -53,20 +53,20 @@ class Experiment(object):
         self.__best_model = deepcopy(self.__model.state_dict())
 
         # criterion
-        self.__criterion = None  # TODO
+        self.__criterion = torch.nn.CrossEntropyLoss()  # TODO
 
         # optimizer
-        # TODO
+        self.__optimizer = config_data['experiment']['optimizer']# TODO
 
         # LR Scheduler
-        # TODO
+        self.__lr_scheduler = config_data['experiment']['lr_scheduler']# TODO
 
         self.__init_model()
 
         # Load Experiment Data if available
         self.__load_experiment()
 
-        raise NotImplementedError()
+#         raise NotImplementedError()
 
     # Loads the experiment data if exists to resume training from last saved checkpoint.
     def __load_experiment(self):
@@ -128,9 +128,10 @@ class Experiment(object):
     def __compute_loss(self, images, captions):
         """
         Computes the loss after a forward pass through the model
+        Forward pass is performed within the model
         """
         # TODO
-        raise NotImplementedError()
+        return loss
 
     def __train(self):
         """
@@ -150,7 +151,17 @@ class Experiment(object):
             tuple (list of original captions, predicted caption)
         """
         # TODO
-        raise NotImplementedError()
+        captionDict = None
+        if testing:
+            captionDict  = self.__coco_test.imgToAnns[img_id]
+        else:
+            captionDict = self.__coco.imgToAnns[img_id]
+        
+        pred = []
+        orig = coco.loadImgs(img_id)[0]["file_name"]
+        for output in outputs:
+            pred.append(captionDict[np.argmax(output)])
+        return zip(orig, caption)
 
     def __str_captions(self, img_id, original_captions, predicted_caption):
         """
@@ -166,6 +177,7 @@ class Experiment(object):
         Validate the model for one epoch using teacher forcing
         """
         # TODO
+        
         raise NotImplementedError()
 
     def test(self):
