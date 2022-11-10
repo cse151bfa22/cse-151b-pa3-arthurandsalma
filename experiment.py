@@ -138,7 +138,27 @@ class Experiment(object):
         Trains the model for one epoch using teacher forcing and minibatch stochastic gradient descent
         """
         # TODO
-        raise NotImplementedError()
+        for i, data in enumerate(self.__train_loader):
+            run_loss = 0
+            inputs, labels = data
+            self.__optimizer.zero_grad()
+
+            outputs = self.__model(inputs)
+
+            loss = self.__compute_loss(outputs, labels)
+            loss.backward()
+
+            self.__optimizer.step()
+
+            run_loss += loss
+
+            if i % 1000:
+                run_avg_loss = run_loss / ((i % 1000) * 1000)
+                print(run_avg_loss)
+            
+
+
+
 
     def __generate_captions(self, img_id, outputs, testing):
         """
