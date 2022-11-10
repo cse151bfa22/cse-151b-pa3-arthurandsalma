@@ -56,15 +56,15 @@ class Experiment(object):
         self.__criterion = torch.nn.CrossEntropyLoss()  # TODO
 
         # optimizer
-        optimizer = config_data['experiment']['optimizer']
+        self.__optimizer = config_data['experiment']['optimizer']# TODO
         if optimizer == 'Adam':
             self.__optimizer = torch.optim.Adam # TODO
 
         # LR Scheduler
-        scheduler = config_data['experiment']['lr_scheduler']
+        self.__lr_scheduler = config_data['experiment']['lr_scheduler']# TODO
         if scheduler == 'steplr':
             self.__lr_scheduler =  torch.optim.lr_scheduler.StepLR # TODO
-
+        
         self.__init_model()
 
         # Load Experiment Data if available
@@ -135,8 +135,6 @@ class Experiment(object):
         Forward pass is performed within the model
         """
         # TODO
-        output = self.__model(images)
-        loss = self.__criterion(output, captions)
         return loss
 
     def __train(self):
@@ -183,10 +181,10 @@ class Experiment(object):
             captionDict = self.__coco.imgToAnns[img_id]
         
         pred = []
-        orig = self.__coco.loadImgs(img_id)[0]["file_name"]
+        orig = coco.loadImgs(img_id)[0]["file_name"]
         for output in outputs:
             pred.append(captionDict[np.argmax(output)])
-        return zip(orig, pred)
+        return zip(orig, caption)
 
     def __str_captions(self, img_id, original_captions, predicted_caption):
         """
@@ -201,8 +199,11 @@ class Experiment(object):
         """
         Validate the model for one epoch using teacher forcing
         """
+        self.__train()
+
+
         # TODO
-        self.__
+        
         raise NotImplementedError()
 
     def test(self):
@@ -210,14 +211,6 @@ class Experiment(object):
         Test the best model on test data. Generate captions and calculate bleu scores
         """
         # TODO
-        running_loss = 0
-        for i, data in enumerate(self.__test_loader):
-            images, captions = data
-            outputs = self.__best_model(images)
-            
-            # for image in images:
-            #     captions = self.__generate_captions(image.)
-                
         raise NotImplementedError()
 
     def __save_model(self):
