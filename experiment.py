@@ -163,7 +163,7 @@ class Experiment(object):
             run_loss += loss.item()
 
             if i % 100==0:
-                run_avg_loss = run_loss / ((i % 100) * 100)
+                run_avg_loss = run_loss / (i)
                 print(f'Avg loss at batch {i}: {run_avg_loss}')
         
         train_loss = run_loss / len(self.__train_loader)
@@ -217,7 +217,7 @@ class Experiment(object):
             run_loss += loss
 
             if i % 200==0:
-                run_avg_loss = run_loss / ((i % 200) * 200)
+                run_avg_loss = run_loss / (i)
                 print(run_avg_loss)
         
         val_loss = run_loss / len(self.__val_loader)
@@ -239,8 +239,8 @@ class Experiment(object):
 
             run_loss += loss
 
-            if i % 200:
-                run_avg_loss = run_loss / ((i % 200) * 200)
+            if i % 200 == 0:
+                run_avg_loss = run_loss / (i)
                 print(run_avg_loss)
             for idx in range(len(image_IDs)):
                 captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
