@@ -155,7 +155,6 @@ class CNN_LSTM(nn.Module):
                 print(f'Res size at line 155: {res.size()}')
                 out = self.embed(out)
                 # pass index thru embedding layer, and that becomes input for next iter
-            print(res)
             return res
 
 def get_model(config_data, vocab):

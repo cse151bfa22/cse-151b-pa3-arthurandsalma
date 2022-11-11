@@ -53,7 +53,7 @@ class Experiment(object):
         self.__best_model = deepcopy(self.__model.state_dict())
 
         # criterion
-        self.__criterion = torch.nn.CrossEntropyLoss()
+        self.__criterion = torch.nn.NLLLoss()
 
         # optimizer
         optimizer = config_data['experiment']['optimizer']
@@ -135,9 +135,13 @@ class Experiment(object):
         Forward pass is performed within the model
         """
         # TODO
-        output = self.__model(images, captions)
-        loss = self.__criterion(output, captions)
-        return loss
+        output = self.__model(images, captions, teacher_forcing=True)
+        captions = torch.nn.functional.one_hot(captions, num_classes = output.size(dim=2))
+        print(f'Output shape: {output.size()}')
+        print(f'Captions shape: {captions.size()}')
+        output = output.type(torch.float)
+        captions = captions.type(torch.float)
+        return self.__criterion(output, captions)
 
     def __train(self):
         """
@@ -158,7 +162,7 @@ class Experiment(object):
 
             self.__optimizer.step()
 
-            run_loss += loss
+            run_loss += loss.item()
 
             if i % 1000:
                 run_avg_loss = run_loss / ((i % 1000) * 1000)
