@@ -53,7 +53,7 @@ class Experiment(object):
         self.__best_model = deepcopy(self.__model.state_dict())
 
         # criterion
-        self.__criterion = torch.nn.NLLLoss()
+        self.__criterion = torch.nn.CrossEntropyLoss()
 
         # optimizer
         optimizer = config_data['experiment']['optimizer']
@@ -137,10 +137,6 @@ class Experiment(object):
         # TODO
         output = self.__model(images, captions, teacher_forcing=True)
         output = torch.transpose(output, 1,2)
-        print(f'Output shape: {output.size()}')
-        print(f'Captions shape: {captions.size()}')
-        # output = output.type(torch.float)
-        # captions = captions.type(torch.float)
         return self.__criterion(output, captions)
 
     def __train(self):
@@ -166,7 +162,7 @@ class Experiment(object):
 
             if i % 1000:
                 run_avg_loss = run_loss / ((i % 1000) * 1000)
-                print(run_avg_loss)
+                print(f'Avg loss at epoch {i}: {run_avg_loss}')
         
         train_loss = run_loss / len(self.__train_loader)
         return train_loss
