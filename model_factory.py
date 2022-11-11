@@ -123,17 +123,18 @@ class CNN_LSTM(nn.Module):
             out, (h_n, c_n) = self.lstm(embedding)
             # then pass lstm outputs to fc layer
             out = self.softmax(self.fc(out))
-            print(f'Output size: {out.size()}')
             # return fc layer ouput, output is list of logits
             return out
         else:
             res = None # list of indices
             # (in non teacher forcing u won't concat)
-            out = self.cnn(images).unsqueeze(1)
+            out = self.cnn(images)
+            out = out.unsqueeze(1)
             h,c = None, None
             for i in range(self.max_length):
                 # in each iteration, u want to get image embeddings
                 # pass thru lstm
+                print(f'Output size at line 136: {out.size()}')
                 if h is None:
                     out, (h, c) = self.lstm(out)
                 else:
@@ -142,15 +143,19 @@ class CNN_LSTM(nn.Module):
                 out = self.fc(out)
                 # pass thru softmax
                 out = self.softmax(out)
+                print(f'Output size at line 144: {out.size()}')
                 # get argmax or torch multinomial sample
-                out = torch.argmax(out, dim=None)
+                out = torch.argmax(out, dim=2)
                 if i == 0:
                     res = out
                 else:
-                    res = res.cat(out, dim=1)
+                    res = torch.cat((res, out), dim=1)
                 # that gives indeces
+                print(f'Output size at line 155: {out.size()}')
+                print(f'Res size at line 155: {res.size()}')
                 out = self.embed(out)
                 # pass index thru embedding layer, and that becomes input for next iter
+            print(res)
             return res
 
 def get_model(config_data, vocab):
