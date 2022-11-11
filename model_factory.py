@@ -31,11 +31,11 @@ class CustomCNN(nn.Module):
         self.maxpool1 = nn.MaxPool2d(kernel_size=3, stride=2)
         self.batchnorm = nn.BatchNorm2d(outputs)
         self.maxpool2 = nn.MaxPool2d(kernel_size=3, stride=2)
-        self.conv2 = nn.Conv2d(out_channels=128, kernel_size=5, padding=2, in_channels=64)
-        self.conv3 = nn.Conv2d(out_channels=256, kernel_size=3, padding=1, in_channels=128)
-        self.conv4 = nn.Conv2d(out_channels=256, kernel_size=3, padding=1, in_channels=256)
-        self.conv5 = nn.Conv2d(out_channels=128, kernel_size=3, padding=1, in_channels=256)
-        self.maxpool2 = nn.MaxPool2d(kernel_size=3, stride=2)    
+        self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5, padding=2)
+        self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1)
+        self.conv4 = nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, padding=1)
+        self.conv5 = nn.Conv2d(in_channels=256, out_channels=128, kernel_size=3, padding=1)
+        self.maxpool3 = nn.MaxPool2d(kernel_size=3, stride=2)    
         self.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
         
         self.fc1 = nn.Linear(in_features=128, out_features=1024)
@@ -52,20 +52,20 @@ class CustomCNN(nn.Module):
             x => Input to the CNN
         '''
         
-        x = F.relu(self.norm(self.conv1(x)))
+        x = F.relu(self.batchnorm(self.conv1(x)))
         x = self.maxpool1(x)
-        x = F.relu(self.norm(self.conv2(x)))
+        x = F.relu(self.batchnorm(self.conv2(x)))
         x = self.maxpool2(x)
-        x = F.relu(self.norm(self.conv3(x)))
-        x = F.relu(self.norm(self.conv4(x)))
-        x = F.relu(self.norm(self.conv5(x)))
-        x = self.maxpool2(x)
+        x = F.relu(self.batchnorm(self.conv3(x)))
+        x = F.relu(self.batchnorm(self.conv4(x)))
+        x = F.relu(self.batchnorm(self.conv5(x)))
+        x = self.maxpool3(x)
         x = self.avgpool(x)
         
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        
-        return self.fc3(x)
+        x = self.fc3(x)
+        return x
 
 
 class CNN_LSTM(nn.Module):
@@ -88,7 +88,12 @@ class CNN_LSTM(nn.Module):
         self.temp = config_data['generation']['temperature']
 
         self.embed = nn.Embedding(len(self.vocab), self.embedding_size)
-        self.lstm = nn.LSTM(self.embedding_size, self.hidden_size, 512, batch_first=True, proj_size=self.embedding_size)
+        self.lstm = nn.LSTM(input_size=self.embedding_size,
+                        hidden_size=self.hidden_size,
+                        num_layers=2,
+                        batch_first=True,
+                        proj_size=self.embedding_size)
+        self.fc = nn.Linear(in_features=self.hidden_size, out_features=len(self.vocab))
         self.softmax = nn.Softmax(self.embedding_size)
 
 
@@ -103,31 +108,39 @@ class CNN_LSTM(nn.Module):
             - Pass output from previous time step through the LSTM at subsequent time steps
             - Generate predicted caption from the output based on whether we are generating them deterministically or not.
         '''
-        def out_to_word(r):
-            p = torch.rand(1)[0]
-            i = 0
-            while True:
-                if p < r[i]:
-                    return self.vocab.idx2word[i]
-                p -= r[i]
-                i += 1
-
-        out, (h, c) = self.lstm(images)
-        s = self.softmax(out)
-        res = [out_to_word(s)]
-        i = 0
-        while True:
-            wordidx = captions[0][len(res) - 1] if teacher_forcing else res[-1]
-            input = self.embed(wordidx)
-            out, (h, c) = self.lstm(input, (h, c))
-            s = self.softmax(out)
-            w = out_to_word(s)
-            res.append(w)
-            i += 1
-            if w == "<end>" or i > 20:
-                break
-
-        return res
+        if teacher_forcing:
+            image_embeddings = self.CustomCNN(images).unsqueeze(1)
+            caption_emebddings = self.embed(captions[:, :-1]) # do the one with two columns
+            # you might have to unsqueeze to flatten it - TORCH.UNSQUEEZE (prolly for image embedding)
+            embedding = torch.cat(image_embeddings, caption_emebddings, dim=1)
+            # then pass embeddings through lstm
+            out, _ = self.lstm(embedding)
+            # then pass lstm outputs to fc layer
+            out = self.fc(out)
+            # return fc layer ouput, output is list of logits
+            return out
+        else:
+            res = None # list of indices
+            # (in non teacher forcing u won't concat)
+            out = self.CustomCNN(images).unsqueeze(1)
+            for i in range(self.max_length):
+                # in each iteration, u want to get image embeddings
+                # pass thru lstm
+                out, (h, c) = self.lstm(out, (h, c))
+                # pass thru fully connected
+                out = self.fc(out)
+                # pass thru softmax
+                out = self.softmax(out)
+                # get argmax or torch multinomial sample
+                out = torch.argmax(out, dim=None)
+                if i == 0:
+                    res = out
+                else:
+                    res = res.cat(out, dim=1)
+                # that gives indeces
+                out = self.embed(out)
+                # pass index thru embedding layer, and that becomes input for next iter
+            return res
 
 def get_model(config_data, vocab):
     '''

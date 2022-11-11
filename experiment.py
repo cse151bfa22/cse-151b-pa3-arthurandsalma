@@ -53,12 +53,12 @@ class Experiment(object):
         self.__best_model = deepcopy(self.__model.state_dict())
 
         # criterion
-        self.__criterion = torch.nn.CrossEntropyLoss()  # TODO
+        self.__criterion = torch.nn.CrossEntropyLoss()
 
         # optimizer
-        optimizer = config_data['experiment']['optimizer']# TODO
-        if optimizer == 'Adam':
-            self.__optimizer = torch.optim.Adam # TODO
+        optimizer = config_data['experiment']['optimizer']
+        if optimizer == 'Adam': # HOW DO I FIND __MODEL.PARAMETERS()?
+            self.__optimizer = torch.optim.Adam(self.__model.parameters(), config_data['experiment']["learning_rate"])
 
         # LR Scheduler
         lr_scheduler = config_data['experiment']['lr_scheduler']# TODO
@@ -141,15 +141,12 @@ class Experiment(object):
         """
         Trains the model for one epoch using teacher forcing and minibatch stochastic gradient descent
         """
-        # TODO
         run_loss = 0
-        for i, data in enumerate(self.__train_loader):
-            inputs, labels = data
+        self.__model.train()
+        for i, inputs, labels, image_IDs in enumerate(self.__train_loader):
             self.__optimizer.zero_grad()
 
-            outputs = self.__model(inputs)
-
-            loss = self.__compute_loss(outputs, labels)
+            loss = self.__compute_loss(inputs, labels)
             loss.backward()
 
             self.__optimizer.step()
@@ -173,7 +170,6 @@ class Experiment(object):
         Returns:
             tuple (list of original captions, predicted caption)
         """
-        # TODO
         captionDict = None
         if testing:
             captionDict  = self.__coco_test.imgToAnns[img_id]
@@ -221,8 +217,7 @@ class Experiment(object):
         """
         # TODO
         run_loss = 0
-        for i, data in enumerate(self.__test_loader):
-            inputs, labels = data
+        for i, inputs, labels, image_IDs in enumerate(self.__test_loader):
 
             outputs = self.__model(inputs)
             loss = self.__compute_loss()
