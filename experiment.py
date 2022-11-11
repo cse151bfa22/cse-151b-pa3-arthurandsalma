@@ -68,7 +68,7 @@ class Experiment(object):
         self.__init_model()
 
         # Load Experiment Data if available
-        #self.__load_experiment()
+        self.__load_experiment()
 
 #         raise NotImplementedError()
 
@@ -208,20 +208,21 @@ class Experiment(object):
         Validate the model for one epoch using teacher forcing
         """
         run_loss = 0
-        for i, data in enumerate(self.__val_loader):
-            images, labels, image_IDs = data
-            if torch.cuda.is_available():
-                images, labels = images.cuda(), labels.cuda()
-            # self.__model(images, labels, teacher_forcing=True)
-            loss = self.__compute_loss(images, labels)
+        with torch.no_grad():
+            for i, data in enumerate(self.__val_loader):
+                images, labels, image_IDs = data
+                if torch.cuda.is_available():
+                    images, labels = images.cuda(), labels.cuda()
+                # self.__model(images, labels, teacher_forcing=True)
+                loss = self.__compute_loss(images, labels)
 
-            run_loss += loss.item()
+                run_loss += loss.item()
 
-            if i % 200==1:
-                run_avg_loss = run_loss / (i)
-                print(run_avg_loss)
-        
-        val_loss = run_loss / len(self.__val_loader)
+                if i % 200==1:
+                    run_avg_loss = run_loss / (i)
+                    print(run_avg_loss)
+            
+            val_loss = run_loss / len(self.__val_loader)
         return val_loss
 
     def test(self):
@@ -231,25 +232,26 @@ class Experiment(object):
         # TODO
         run_loss = 0
         bleu1_avg, bleu4_avg = 0, 0
-        for i, data in enumerate(self.__test_loader):
-            images, labels, image_IDs = data
-            if torch.cuda.is_available():
-                images, labels = images.cuda(), labels.cuda()
-            outputs = self.__model(images, labels, teacher_forcing = True)
-            loss = self.__compute_loss(images, labels)
+        with torch.no_grad():
+            for i, data in enumerate(self.__test_loader):
+                images, labels, image_IDs = data
+                if torch.cuda.is_available():
+                    images, labels = images.cuda(), labels.cuda()
+                outputs = self.__model(images, labels, teacher_forcing = True)
+                loss = self.__compute_loss(images, labels)
 
-            run_loss += loss.item()
+                run_loss += loss.item()
 
-            if i % 200 == 1:
-                run_avg_loss = run_loss / (i)
-                print(run_avg_loss)
-            for idx in range(len(image_IDs)):
-                captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
-                
-                bleu1_avg += caption_utils.bleu1(captionDict,pred)
-                bleu4_avg += caption_utils.bleu4(captionDict,pred)
-            bleu1_avg /= len(image_IDs)
-            bleu4_avg /= len(image_IDs)
+                if i % 200 == 1:
+                    run_avg_loss = run_loss / (i)
+                    print(run_avg_loss)
+                for idx in range(len(image_IDs)):
+                    captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
+                    
+                    bleu1_avg += caption_utils.bleu1(captionDict,pred)
+                    bleu4_avg += caption_utils.bleu4(captionDict,pred)
+                bleu1_avg /= len(image_IDs)
+                bleu4_avg /= len(image_IDs)
         print(f'Bleu1 score: {bleu1_avg}')
         print(f'Bleu4 score: {bleu4_avg}')
         test_loss = run_loss / len(self.__test_loader)
