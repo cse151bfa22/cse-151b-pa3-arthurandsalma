@@ -62,7 +62,7 @@ class Experiment(object):
 
         # LR Scheduler
         lr_scheduler = config_data['experiment']['lr_scheduler']# TODO
-        if scheduler == 'steplr':
+        if lr_scheduler == 'steplr':
             self.__lr_scheduler =  torch.optim.lr_scheduler.StepLR # TODO
         
         self.__init_model()
