@@ -136,11 +136,11 @@ class Experiment(object):
         """
         # TODO
         output = self.__model(images, captions, teacher_forcing=True)
-        captions = torch.nn.functional.one_hot(captions, num_classes = output.size(dim=2))
+        output = torch.transpose(output, 1,2)
         print(f'Output shape: {output.size()}')
         print(f'Captions shape: {captions.size()}')
-        output = output.type(torch.float)
-        captions = captions.type(torch.float)
+        # output = output.type(torch.float)
+        # captions = captions.type(torch.float)
         return self.__criterion(output, captions)
 
     def __train(self):
