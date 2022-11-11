@@ -153,7 +153,8 @@ class Experiment(object):
             # print(f'Labels size:  {labels.size()}')
             # print(f'Image IDs count:  {len(image_IDs)}')
             self.__optimizer.zero_grad()
-            self.__model(images, labels, teacher_forcing=True)
+            ##Forward pass is done within compute_loss, no need to do here
+            # self.__model(images, labels, teacher_forcing=True)
             
             loss = self.__compute_loss(images, labels)
             loss.backward()
@@ -211,10 +212,10 @@ class Experiment(object):
             images, labels, image_IDs = data
             if torch.cuda.is_available():
                 images, labels = images.cuda(), labels.cuda()
-            self.__model(images, labels, teacher_forcing=True)
+            # self.__model(images, labels, teacher_forcing=True)
             loss = self.__compute_loss(images, labels)
 
-            run_loss += loss
+            run_loss += loss.item()
 
             if i % 200==1:
                 run_avg_loss = run_loss / (i)
@@ -234,10 +235,10 @@ class Experiment(object):
             images, labels, image_IDs = data
             if torch.cuda.is_available():
                 images, labels = images.cuda(), labels.cuda()
-            outputs = self.__model(images, labels)
+            outputs = self.__model(images, labels, teacher_forcing = True)
             loss = self.__compute_loss(images, labels)
 
-            run_loss += loss
+            run_loss += loss.item()
 
             if i % 200 == 1:
                 run_avg_loss = run_loss / (i)
