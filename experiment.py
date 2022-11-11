@@ -162,7 +162,7 @@ class Experiment(object):
 
             run_loss += loss.item()
 
-            if i % 100==0:
+            if i % 100==1:
                 run_avg_loss = run_loss / (i)
                 print(f'Avg loss at batch {i}: {run_avg_loss}')
         
@@ -216,7 +216,7 @@ class Experiment(object):
 
             run_loss += loss
 
-            if i % 200==0:
+            if i % 200==1:
                 run_avg_loss = run_loss / (i)
                 print(run_avg_loss)
         
@@ -239,7 +239,7 @@ class Experiment(object):
 
             run_loss += loss
 
-            if i % 200 == 0:
+            if i % 200 == 1:
                 run_avg_loss = run_loss / (i)
                 print(run_avg_loss)
             for idx in range(len(image_IDs)):
