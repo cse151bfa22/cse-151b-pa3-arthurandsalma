@@ -63,7 +63,7 @@ class Experiment(object):
         # LR Scheduler
         lr_scheduler = config_data['experiment']['lr_scheduler']# TODO
         if lr_scheduler == 'steplr':
-            self.__lr_scheduler =  torch.optim.lr_scheduler.StepLR # TODO
+            self.__lr_scheduler =  torch.optim.lr_scheduler.StepLR(self.__optimizer, config_data['experiment']["learning_rate"]) # TODO
         
         self.__init_model()
 
@@ -180,6 +180,7 @@ class Experiment(object):
         Returns:
             tuple (list of original captions, predicted caption)
         """
+        print(f'Outputs shape in generate_captions: {outputs.size()}')
         captionDict, orig = None, None
         if testing:
             captionDict  = self.__coco_test.imgToAnns[img_id]
@@ -190,8 +191,8 @@ class Experiment(object):
         
         pred = []
         for output in outputs:
-            pred.append(self.__vocab[np.argmax(output)])
-        print(self.__str_captions(img_id, orig,pred))
+            pred.append(self.__vocab.idx2word[np.argmax(output).item()])
+        print(self.__str_captions(captionDict, orig,pred))
         return (captionDict, pred)
 
     def __str_captions(self, img_id, original_captions, predicted_caption):
@@ -218,9 +219,9 @@ class Experiment(object):
 
                 run_loss += loss.item()
 
-                if i % 200==1:
+                if i % 100==1:
                     run_avg_loss = run_loss / (i)
-                    print(run_avg_loss)
+                    print(f'Avg loss at batch {i}: {run_avg_loss}')
             
             val_loss = run_loss / len(self.__val_loader)
         return val_loss
@@ -245,6 +246,9 @@ class Experiment(object):
                 if i % 200 == 1:
                     run_avg_loss = run_loss / (i)
                     print(run_avg_loss)
+                    
+                outputs = outputs.cpu()
+                print(f'Outputs shape: {outputs.size()}')
                 for idx in range(len(image_IDs)):
                     captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
                     
