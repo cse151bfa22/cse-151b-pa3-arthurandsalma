@@ -38,7 +38,7 @@ class Experiment(object):
         # Load Datasets
         self.__coco, self.__coco_test, self.__vocab, self.__train_loader, self.__val_loader, self.__test_loader = get_datasets(
             config_data)
-
+        
         # Setup Experiment
         self.__epochs = config_data['experiment']['num_epochs']
         self.__current_epoch = 0
@@ -68,7 +68,7 @@ class Experiment(object):
         self.__init_model()
 
         # Load Experiment Data if available
-        self.__load_experiment()
+        #self.__load_experiment()
 
 #         raise NotImplementedError()
 
@@ -135,6 +135,8 @@ class Experiment(object):
         Forward pass is performed within the model
         """
         # TODO
+        output = self.__model(images, captions)
+        loss = self.__criterion(output, captions)
         return loss
 
     def __train(self):
@@ -143,10 +145,15 @@ class Experiment(object):
         """
         run_loss = 0
         self.__model.train()
-        for i, inputs, labels, image_IDs in enumerate(self.__train_loader):
+        for i, data in enumerate(self.__train_loader):
+            images, labels, image_IDs = data
+            print(f'Input size:  {images.size()}')
+            print(f'Labels size:  {labels.size()}')
+            print(f'Image IDs count:  {len(image_IDs)}')
             self.__optimizer.zero_grad()
-
-            loss = self.__compute_loss(inputs, labels)
+            self.__model(images, labels, teacher_forcing=True)
+            
+            loss = self.__compute_loss(images, labels)
             loss.backward()
 
             self.__optimizer.step()
@@ -170,17 +177,19 @@ class Experiment(object):
         Returns:
             tuple (list of original captions, predicted caption)
         """
-        captionDict = None
+        captionDict, orig = None, None
         if testing:
             captionDict  = self.__coco_test.imgToAnns[img_id]
+            orig = self.__coco_test.loadImgs(img_id)[0]["file_name"]
         else:
             captionDict = self.__coco.imgToAnns[img_id]
+            orig = self.__coco.loadImgs(img_id)[0]["file_name"]
         
         pred = []
-        orig = coco.loadImgs(img_id)[0]["file_name"]
         for output in outputs:
-            pred.append(captionDict[np.argmax(output)])
-        return zip(orig, caption)
+            pred.append(self.__vocab[np.argmax(output)])
+        print(self.__str_captions(img_id, orig,pred))
+        return (captionDict, pred)
 
     def __str_captions(self, img_id, original_captions, predicted_caption):
         """
@@ -197,10 +206,10 @@ class Experiment(object):
         """
         run_loss = 0
         for i, data in enumerate(self.__val_loader):
-            inputs, labels = data
+            images, labels, image_IDs = data
             
-            outputs = self.__model(inputs)
-            loss = self.__compute_loss()
+            self.__model(images, labels, teacher_forcing=True)
+            loss = self.__compute_loss(images, labels)
 
             run_loss += loss
 
@@ -217,19 +226,28 @@ class Experiment(object):
         """
         # TODO
         run_loss = 0
-        for i, inputs, labels, image_IDs in enumerate(self.__test_loader):
-
-            outputs = self.__model(inputs)
-            loss = self.__compute_loss()
+        bleu1_avg, bleu4_avg = 0, 0
+        for i, data in enumerate(self.__test_loader):
+            images, labels, image_IDs = data
+            outputs = self.__model(images, labels)
+            loss = self.__compute_loss(images, labels)
 
             run_loss += loss
 
             if i % 200:
                 run_avg_loss = run_loss / ((i % 200) * 200)
                 print(run_avg_loss)
-        
+            for idx in range(len(image_IDs)):
+                captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
+                
+                bleu1_avg += caption_utils.bleu1(captionDict,pred)
+                bleu4_avg += caption_utils.bleu4(captionDict,pred)
+            bleu1_avg /= len(image_IDs)
+            bleu4_avg /= len(image_IDs)
+        print(f'Bleu1 score: {bleu1_avg}')
+        print(f'Bleu4 score: {bleu4_avg}')
         test_loss = run_loss / len(self.__test_loader)
-        return test_loss
+        print(f'Avg Test Loss: {test_loss}')
 
     def __save_model(self):
         root_model_path = os.path.join(self.__experiment_dir, 'latest_model.pt')
