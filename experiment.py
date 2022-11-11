@@ -56,12 +56,12 @@ class Experiment(object):
         self.__criterion = torch.nn.CrossEntropyLoss()  # TODO
 
         # optimizer
-        self.__optimizer = config_data['experiment']['optimizer']# TODO
+        optimizer = config_data['experiment']['optimizer']# TODO
         if optimizer == 'Adam':
             self.__optimizer = torch.optim.Adam # TODO
 
         # LR Scheduler
-        self.__lr_scheduler = config_data['experiment']['lr_scheduler']# TODO
+        lr_scheduler = config_data['experiment']['lr_scheduler']# TODO
         if scheduler == 'steplr':
             self.__lr_scheduler =  torch.optim.lr_scheduler.StepLR # TODO
         
