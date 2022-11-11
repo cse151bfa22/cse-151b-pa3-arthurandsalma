@@ -147,9 +147,11 @@ class Experiment(object):
         self.__model.train()
         for i, data in enumerate(self.__train_loader):
             images, labels, image_IDs = data
-            print(f'Input size:  {images.size()}')
-            print(f'Labels size:  {labels.size()}')
-            print(f'Image IDs count:  {len(image_IDs)}')
+            if torch.cuda.is_available():
+                images, labels = images.cuda(), labels.cuda()
+            # print(f'Input size:  {images.size()}')
+            # print(f'Labels size:  {labels.size()}')
+            # print(f'Image IDs count:  {len(image_IDs)}')
             self.__optimizer.zero_grad()
             self.__model(images, labels, teacher_forcing=True)
             
@@ -160,9 +162,9 @@ class Experiment(object):
 
             run_loss += loss.item()
 
-            if i % 1000:
-                run_avg_loss = run_loss / ((i % 1000) * 1000)
-                print(f'Avg loss at epoch {i}: {run_avg_loss}')
+            if i % 100==0:
+                run_avg_loss = run_loss / ((i % 100) * 100)
+                print(f'Avg loss at batch {i}: {run_avg_loss}')
         
         train_loss = run_loss / len(self.__train_loader)
         return train_loss
@@ -207,13 +209,14 @@ class Experiment(object):
         run_loss = 0
         for i, data in enumerate(self.__val_loader):
             images, labels, image_IDs = data
-            
+            if torch.cuda.is_available():
+                images, labels = images.cuda(), labels.cuda()
             self.__model(images, labels, teacher_forcing=True)
             loss = self.__compute_loss(images, labels)
 
             run_loss += loss
 
-            if i % 200:
+            if i % 200==0:
                 run_avg_loss = run_loss / ((i % 200) * 200)
                 print(run_avg_loss)
         
@@ -229,6 +232,8 @@ class Experiment(object):
         bleu1_avg, bleu4_avg = 0, 0
         for i, data in enumerate(self.__test_loader):
             images, labels, image_IDs = data
+            if torch.cuda.is_available():
+                images, labels = images.cuda(), labels.cuda()
             outputs = self.__model(images, labels)
             loss = self.__compute_loss(images, labels)
 

@@ -115,10 +115,10 @@ class CNN_LSTM(nn.Module):
             image_embeddings = self.cnn(images).unsqueeze(1)
             caption_emebddings = self.embed(captions[:, :-1]) # do the one with two columns
             # you might have to unsqueeze to flatten it - TORCH.UNSQUEEZE (prolly for image embedding)
-            print(f'Image embeddings: {image_embeddings.size()}')
-            print(f'Caption embeddings: {caption_emebddings.size()}')
+            # print(f'Image embeddings: {image_embeddings.size()}')
+            # print(f'Caption embeddings: {caption_emebddings.size()}')
             embedding = torch.cat((image_embeddings, caption_emebddings), dim=1)
-            print(f'Embedding size: {embedding.size()}')
+            # print(f'Embedding size: {embedding.size()}')
             # then pass embeddings through lstm
             out, (h_n, c_n) = self.lstm(embedding)
             # then pass lstm outputs to fc layer
@@ -134,7 +134,6 @@ class CNN_LSTM(nn.Module):
             for i in range(self.max_length):
                 # in each iteration, u want to get image embeddings
                 # pass thru lstm
-                print(f'Output size at line 136: {out.size()}')
                 if h is None:
                     out, (h, c) = self.lstm(out)
                 else:
@@ -143,7 +142,7 @@ class CNN_LSTM(nn.Module):
                 out = self.fc(out)
                 # pass thru softmax
                 out = self.softmax(out)
-                print(f'Output size at line 144: {out.size()}')
+                # print(f'Output size at line 144: {out.size()}')
                 # get argmax or torch multinomial sample
                 out = torch.argmax(out, dim=2)
                 if i == 0:
@@ -151,8 +150,8 @@ class CNN_LSTM(nn.Module):
                 else:
                     res = torch.cat((res, out), dim=1)
                 # that gives indeces
-                print(f'Output size at line 155: {out.size()}')
-                print(f'Res size at line 155: {res.size()}')
+                # print(f'Output size at line 155: {out.size()}')
+                # print(f'Res size at line 155: {res.size()}')
                 out = self.embed(out)
                 # pass index thru embedding layer, and that becomes input for next iter
             return res
