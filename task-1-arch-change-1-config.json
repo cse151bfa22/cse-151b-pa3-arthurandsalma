@@ -1,5 +1,5 @@
 {
-  "experiment_name": "task-1-default-config",
+  "experiment_name": "task-1-arch-change-1-config",
   "dataset": {
     "training_ids_file_path": "./train_ids.csv",
     "validation_ids_file_path": "./val_ids.csv",

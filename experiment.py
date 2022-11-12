@@ -226,7 +226,7 @@ class Experiment(object):
                 outputs = outputs.cpu()
                 captionDict, pred = self.__generate_captions(image_IDs[0], outputs[0], testing=False)
                 captionDict, pred = self.__generate_captions(image_IDs[15], outputs[15], testing=False)
-                captionDict, pred = self.__generate_captions(image_IDs[50], outputs[50], testing=False)
+                captionDict, pred = self.__generate_captions(image_IDs[19], outputs[19], testing=False)
                 if i % 100==1:
                     run_avg_loss = run_loss / (i)
                     print(f'Avg loss at batch {i}: {run_avg_loss}')
