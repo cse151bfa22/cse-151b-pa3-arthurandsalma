@@ -5,5 +5,4 @@ savedVocab
 data/annotations
 .vscode
 *.ipynb
-*.ipynb
-experiment_data/task-1-arch-change-1-config/latest_model.pt
+*.pt
