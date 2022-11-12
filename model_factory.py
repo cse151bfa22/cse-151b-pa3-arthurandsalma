@@ -122,7 +122,7 @@ class CNN_LSTM(nn.Module):
             # then pass embeddings through lstm
             out, (h_n, c_n) = self.lstm(embedding)
             # then pass lstm outputs to fc layer
-            out = self.softmax(self.fc(out))
+            out = self.fc(out) # I just removed self.softmax
             # return fc layer ouput, output is list of logits
             return out
         else:
@@ -144,10 +144,10 @@ class CNN_LSTM(nn.Module):
                 # print(f'Output size at line 144: {out.size()}')
                 # get argmax or torch multinomial sample
                 if self.deterministic:
-                    out = self.softmax(out)
-                    out = torch.argmax(out, dim=2) # torch.argmax(out, dim=1)
+                    out = self.softmax(out, dim=2)
+                    out = torch.argmax(out, dim=1)
                 else:
-                    temp_out = self.softmax(out / self.temp)
+                    temp_out = self.softmax(out / self.temp, dim=2)
                     idx = torch.multinomial(temp_out, num_samples=1)
                     out = out[idx]
                 if i == 0:
