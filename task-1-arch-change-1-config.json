@@ -22,7 +22,7 @@
     "patience": 3
   },
   "model": {
-    "hidden_size": 512,
+    "hidden_size": 1024,
     "embedding_size": 300,
     "model_type": "Custom",
     "keep_image": false

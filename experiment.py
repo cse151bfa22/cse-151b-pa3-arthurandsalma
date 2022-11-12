@@ -57,8 +57,11 @@ class Experiment(object):
 
         # optimizer
         optimizer = config_data['experiment']['optimizer']
-        if optimizer == 'Adam': # HOW DO I FIND __MODEL.PARAMETERS()?
+        if optimizer == 'Adam':
             self.__optimizer = torch.optim.Adam(self.__model.parameters(), config_data['experiment']["learning_rate"])
+        elif optimizer == 'SGD':
+            self.__optimizer = torch.optim.SGD(self.__model.parameters(), config_data['experiment']["learning_rate"])
+
 
         # LR Scheduler
         lr_scheduler = config_data['experiment']['lr_scheduler']# TODO
@@ -222,6 +225,8 @@ class Experiment(object):
                 run_loss += loss.item()
                 outputs = outputs.cpu()
                 captionDict, pred = self.__generate_captions(image_IDs[0], outputs[0], testing=False)
+                captionDict, pred = self.__generate_captions(image_IDs[15], outputs[15], testing=False)
+                captionDict, pred = self.__generate_captions(image_IDs[50], outputs[50], testing=False)
                 if i % 100==1:
                     run_avg_loss = run_loss / (i)
                     print(f'Avg loss at batch {i}: {run_avg_loss}')
@@ -234,9 +239,8 @@ class Experiment(object):
         """
         Test the best model on test data. Generate captions and calculate bleu scores
         """
-        # TODO
         run_loss = 0
-        bleu1_avg, bleu4_avg = 0, 0
+        bleu1, bleu4 = [], []
         with torch.no_grad():
             for i, data in enumerate(self.__test_loader):
                 images, labels, image_IDs = data
@@ -256,12 +260,22 @@ class Experiment(object):
                 for idx in range(len(image_IDs)):
                     captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
                     
-                    bleu1_avg += caption_utils.bleu1(captionDict,pred)
-                    bleu4_avg += caption_utils.bleu4(captionDict,pred)
-                bleu1_avg /= len(image_IDs)
-                bleu4_avg /= len(image_IDs)
-        print(f'Bleu1 score: {bleu1_avg}')
-        print(f'Bleu4 score: {bleu4_avg}')
+                    bleu1.append(caption_utils.bleu1(captionDict,pred))
+                    bleu4.append(caption_utils.bleu4(captionDict,pred))
+        write_to_file_in_dir(self.__experiment_dir, 'bleu1.txt', bleu1)
+        write_to_file_in_dir(self.__experiment_dir, 'bleu4.txt', bleu4)
+        plt.figure()
+        plt.hist(bleu1)
+        plt.xlabel("Bleu-1 Score")
+        plt.ylabel("Number of examples")
+        plt.savefig(os.path.join(self.__experiment_dir, "bleu1_hist.png"))
+        plt.show()
+        plt.figure()
+        plt.hist(bleu4)
+        plt.xlabel("Bleu-4 Score")
+        plt.ylabel("Number of examples")
+        plt.savefig(os.path.join(self.__experiment_dir, "bleu1_hist.png"))
+        plt.show()
         test_loss = run_loss / len(self.__test_loader)
         print(f'Avg Test Loss: {test_loss}')
 

@@ -2,6 +2,7 @@ __pycache__/
 *.jpg
 *.gz
 savedVocab
+data/annotations
+.vscode
 *.ipynb
-*.json
 *.ipynb

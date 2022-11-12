@@ -14,7 +14,7 @@
   },
   "experiment": {
     "num_epochs": 10,
-    "learning_rate": 5e-4,
+    "learning_rate": 5e-3,
     "optimizer": "Adam",
     "weight_decay": 1e-4,
     "lr_scheduler": "steplr",
@@ -24,7 +24,7 @@
   "model": {
     "hidden_size": 512,
     "embedding_size": 300,
-    "model_type": "Custom",
+    "model_type": "Resnet",
     "keep_image": false
   },
   "generation": {

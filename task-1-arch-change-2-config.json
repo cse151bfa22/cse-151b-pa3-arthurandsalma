@@ -23,7 +23,7 @@
   },
   "model": {
     "hidden_size": 512,
-    "embedding_size": 300,
+    "embedding_size": 200,
     "model_type": "Custom",
     "keep_image": false
   },
