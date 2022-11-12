@@ -220,7 +220,7 @@ class Experiment(object):
                 loss = self.__compute_loss(images, labels, outputs)
 
                 run_loss += loss.item()
-
+                outputs = outputs.cpu()
                 captionDict, pred = self.__generate_captions(image_IDs[0], outputs[0], testing=False)
                 if i % 100==1:
                     run_avg_loss = run_loss / (i)
