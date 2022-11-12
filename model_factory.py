@@ -5,7 +5,7 @@
 # Fall 2022
 ################################################################################
 import torch
-from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import resnet50
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -90,7 +90,7 @@ class CNN_LSTM(nn.Module):
         self.temp = config_data['generation']['temperature']
 
         if self.model_type=="Resnet":
-            self.cnn = resnet50(weights = ResNet50_Weights.IMAGENET1K_V2)
+            self.cnn = resnet50(weights = "IMAGENET1K_V2")
             self.cnn.fc = nn.Linear(512, self.hidden_size)
         elif self.model_type=="Custom":
             self.cnn = CustomCNN(self.embedding_size)
