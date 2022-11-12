@@ -129,13 +129,14 @@ class Experiment(object):
                 self.__lr_scheduler.step()
         self.__model.load_state_dict(self.__best_model)
 
-    def __compute_loss(self, images, captions):
+    def __compute_loss(self, images, captions, output = None):
         """
         Computes the loss after a forward pass through the model
         Forward pass is performed within the model
         """
         # TODO
-        output = self.__model(images, captions, teacher_forcing=True)
+        if output is None:
+            output = self.__model(images, captions, teacher_forcing=True)
         output = torch.transpose(output, 1,2)
         return self.__criterion(output, captions)
 
@@ -154,9 +155,9 @@ class Experiment(object):
             # print(f'Image IDs count:  {len(image_IDs)}')
             self.__optimizer.zero_grad()
             ##Forward pass is done within compute_loss, no need to do here
-            # self.__model(images, labels, teacher_forcing=True)
+            outputs = self.__model(images, labels, teacher_forcing=True)
             
-            loss = self.__compute_loss(images, labels)
+            loss = self.__compute_loss(images, labels, outputs)
             loss.backward()
 
             self.__optimizer.step()
@@ -166,6 +167,7 @@ class Experiment(object):
             if i % 100==1:
                 run_avg_loss = run_loss / (i)
                 print(f'Avg loss at batch {i}: {run_avg_loss}')
+                
         
         train_loss = run_loss / len(self.__train_loader)
         return train_loss
@@ -192,7 +194,7 @@ class Experiment(object):
         pred = []
         for output in outputs:
             pred.append(self.__vocab.idx2word[np.argmax(output).item()])
-        print(self.__str_captions(captionDict, orig,pred))
+        print(self.__str_captions(0, captionDict,pred))
         return (captionDict, pred)
 
     def __str_captions(self, img_id, original_captions, predicted_caption):
@@ -214,14 +216,16 @@ class Experiment(object):
                 images, labels, image_IDs = data
                 if torch.cuda.is_available():
                     images, labels = images.cuda(), labels.cuda()
-                # self.__model(images, labels, teacher_forcing=True)
-                loss = self.__compute_loss(images, labels)
+                outputs = self.__model(images, labels, teacher_forcing=True)
+                loss = self.__compute_loss(images, labels, outputs)
 
                 run_loss += loss.item()
 
+                captionDict, pred = self.__generate_captions(image_IDs[0], outputs[0], testing=False)
                 if i % 100==1:
                     run_avg_loss = run_loss / (i)
                     print(f'Avg loss at batch {i}: {run_avg_loss}')
+                
             
             val_loss = run_loss / len(self.__val_loader)
         return val_loss
