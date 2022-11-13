@@ -91,7 +91,7 @@ class CNN_LSTM(nn.Module):
 
         if self.model_type=="Resnet":
             self.cnn = resnet50(pretrained=True)
-            self.cnn.fc = nn.Linear(512, self.hidden_size)
+            self.cnn.fc = nn.Linear(2048, self.hidden_size)
         elif self.model_type=="Custom":
             self.cnn = CustomCNN(self.embedding_size)
         self.embed = nn.Embedding(len(self.vocab), self.embedding_size)
@@ -129,7 +129,7 @@ class CNN_LSTM(nn.Module):
             out = self.fc(out) # I just removed self.softmax
             # return fc layer ouput, output is list of logits
             return out
-        else:
+        else: # if non-teacher forcing
             res = None # list of indices
             # (in non teacher forcing u won't concat)
             out = self.cnn(images)
