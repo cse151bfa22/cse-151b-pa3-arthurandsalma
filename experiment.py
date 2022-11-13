@@ -273,7 +273,7 @@ class Experiment(object):
                         print(captionDict)
                         print("pred:")
                         print(pred)
-                        pred = filter(filterTokens, pred)
+                        pred = list(filter(filterTokens, pred))
                         bleu1.append(caption_utils.bleu1(captionDict,pred))
                         bleu4.append(caption_utils.bleu4(captionDict,pred))
                         uniqueImageIDs.add(image_IDs[idx])
