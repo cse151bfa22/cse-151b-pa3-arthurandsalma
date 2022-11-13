@@ -90,7 +90,7 @@ class CNN_LSTM(nn.Module):
         self.temp = config_data['generation']['temperature']
 
         if self.model_type=="Resnet":
-            self.cnn = resnet50(weights = "IMAGENET1K_V2")
+            self.cnn = resnet50(pretrained=True)
             self.cnn.fc = nn.Linear(512, self.hidden_size)
         elif self.model_type=="Custom":
             self.cnn = CustomCNN(self.embedding_size)
