@@ -265,6 +265,10 @@ class Experiment(object):
                 print(f'Outputs shape: {outputs.size()}')
                 for idx in range(len(image_IDs)):
                     captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
+                    print("captionDict:")
+                    print(captionDict)
+                    print("pred:")
+                    print(pred)
                     pred = filter(filterTokens, pred)
                     bleu1.append(caption_utils.bleu1(captionDict,pred))
                     bleu4.append(caption_utils.bleu4(captionDict,pred))
