@@ -269,7 +269,10 @@ class Experiment(object):
                 for idx in range(len(image_IDs)):
                     if image_IDs[idx] not in uniqueImageIDs:
                         captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
-                        print("captionDict:")
+                        print("captionDict:") # We need to turn the following sentences into tokens using coco_dataset.py's __getitem__
+                        """
+                        [{'image_id': 134552, 'id': 720688, 'caption': 'A woman standing on a tennis court holding a racquet.'}, {'image_id': 134552, 'id': 725977, 'caption': 'A picture of a female tennis player. '}, {'image_id': 134552, 'id': 726409, 'caption': 'A woman in a tennis outfit holds a racket.'}, {'image_id': 134552, 'id': 730024, 'caption': 'A female tennis player holding a tennis racket.'}, {'image_id': 134552, 'id': 731026, 'caption': 'She is well prepared to participate in the tennis match.'}]
+                        """
                         print(captionDict)
                         print("pred:")
                         print(pred)
