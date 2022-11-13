@@ -239,6 +239,12 @@ class Experiment(object):
         """
         Test the best model on test data. Generate captions and calculate bleu scores
         """
+        def filterTokens(pred):
+            tokens = ['<start>', '<end>', '<pad>']
+            if pred in tokens:
+                return False
+            else:
+                return True
         run_loss = 0
         bleu1, bleu4 = [], []
         with torch.no_grad():
@@ -259,7 +265,7 @@ class Experiment(object):
                 print(f'Outputs shape: {outputs.size()}')
                 for idx in range(len(image_IDs)):
                     captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
-                    
+                    pred = filter(filterTokens, pred)
                     bleu1.append(caption_utils.bleu1(captionDict,pred))
                     bleu4.append(caption_utils.bleu4(captionDict,pred))
         write_to_file_in_dir(self.__experiment_dir, 'bleu1.txt', bleu1)
