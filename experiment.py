@@ -290,7 +290,7 @@ class Experiment(object):
         plt.hist(bleu4)
         plt.xlabel("Bleu-4 Score")
         plt.ylabel("Number of examples")
-        plt.savefig(os.path.join(self.__experiment_dir, "bleu1_hist.png"))
+        plt.savefig(os.path.join(self.__experiment_dir, "bleu4_hist.png"))
         plt.show()
         test_loss = run_loss / len(self.__test_loader)
         print(f'Avg Test Loss: {test_loss}')
