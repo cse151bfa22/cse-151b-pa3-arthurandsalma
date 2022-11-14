@@ -49,7 +49,7 @@ def get_coco_dataloader(img_ids_file_path, imgs_root_dir, annotation_file_path, 
         img_ids = list(reader)
 
     img_ids = [int(i) for i in img_ids[0]]
-    # img_ids = img_ids[:2000]
+    img_ids = img_ids[:20]
     ann_ids = [coco_obj.imgToAnns[img_ids[i]][j]['id'] for i in range(0, len(img_ids)) for j in
                range(0, len(coco_obj.imgToAnns[img_ids[i]]))]
 
