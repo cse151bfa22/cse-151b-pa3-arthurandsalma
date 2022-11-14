@@ -91,7 +91,7 @@ class CNN_LSTM(nn.Module):
 
         if self.model_type=="Resnet":
             self.cnn = resnet50(pretrained=True)
-            self.cnn.fc = nn.Linear(2048, self.hidden_size)
+            self.cnn.fc = nn.Linear(2048, self.embedding_size)
         elif self.model_type=="Custom":
             self.cnn = CustomCNN(self.embedding_size)
         self.embed = nn.Embedding(len(self.vocab), self.embedding_size)
