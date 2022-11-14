@@ -186,19 +186,18 @@ class Experiment(object):
         Returns:
             tuple (list of original captions, predicted caption)
         """
-        print(f'Outputs shape in generate_captions: {outputs.size()}')
         captionDict, orig = None, None
         if testing:
             captionDict  = self.__coco_test.imgToAnns[img_id]
-            orig = self.__coco_test.loadImgs(img_id)[0]["file_name"]
+            captionDict = [word_tokenize(caption['caption'].lower()) for caption in captionDict]
         else:
             captionDict = self.__coco.imgToAnns[img_id]
-            orig = self.__coco.loadImgs(img_id)[0]["file_name"]
-        
+            captionDict = [word_tokenize(caption['caption'].lower()) for caption in captionDict]
+
         pred = []
         for output in outputs:
             pred.append(self.__vocab.idx2word[np.argmax(output).item()])
-        print(self.__str_captions(0, captionDict,pred))
+        print(self.__str_captions(img_id, captionDict,pred))
         return (captionDict, pred)
 
     def __str_captions(self, img_id, original_captions, predicted_caption):
@@ -264,18 +263,17 @@ class Experiment(object):
                     print(run_avg_loss)
                     
                 outputs = outputs.cpu()
-                print(f'Outputs shape: {outputs.size()}')
 
                 for idx in range(len(image_IDs)):
                     if image_IDs[idx] not in uniqueImageIDs:
                         captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
-                        print("captionDict:") # We need to turn the following sentences into tokens using coco_dataset.py's __getitem__
-                        """
-                        [{'image_id': 134552, 'id': 720688, 'caption': 'A woman standing on a tennis court holding a racquet.'}, {'image_id': 134552, 'id': 725977, 'caption': 'A picture of a female tennis player. '}, {'image_id': 134552, 'id': 726409, 'caption': 'A woman in a tennis outfit holds a racket.'}, {'image_id': 134552, 'id': 730024, 'caption': 'A female tennis player holding a tennis racket.'}, {'image_id': 134552, 'id': 731026, 'caption': 'She is well prepared to participate in the tennis match.'}]
-                        """
-                        print(captionDict)
-                        print("pred:")
-                        print(pred)
+                        # print("captionDict:") # We need to turn the following sentences into tokens using coco_dataset.py's __getitem__
+                        # """
+                        # [{'image_id': 134552, 'id': 720688, 'caption': 'A woman standing on a tennis court holding a racquet.'}, {'image_id': 134552, 'id': 725977, 'caption': 'A picture of a female tennis player. '}, {'image_id': 134552, 'id': 726409, 'caption': 'A woman in a tennis outfit holds a racket.'}, {'image_id': 134552, 'id': 730024, 'caption': 'A female tennis player holding a tennis racket.'}, {'image_id': 134552, 'id': 731026, 'caption': 'She is well prepared to participate in the tennis match.'}]
+                        # """
+                        # print(captionDict)
+                        # print("pred:")
+                        # print(pred)
                         pred = list(filter(filterTokens, pred))
                         bleu1.append(caption_utils.bleu1(captionDict,pred))
                         bleu4.append(caption_utils.bleu4(captionDict,pred))
