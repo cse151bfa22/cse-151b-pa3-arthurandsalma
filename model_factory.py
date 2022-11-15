@@ -133,6 +133,7 @@ class CNN_LSTM(nn.Module):
             # (in non teacher forcing u won't concat)
             out = self.cnn(images)
             out = out.unsqueeze(1)
+            out = self.embed(out)
             h,c = None, None
             for i in range(self.max_length):
                 # in each iteration, u want to get image embeddings
