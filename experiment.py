@@ -138,7 +138,6 @@ class Experiment(object):
         Computes the loss after a forward pass through the model
         Forward pass is performed within the model
         """
-        # TODO
         if output is None:
             output = self.__model(images, captions, teacher_forcing=True)
         output = torch.transpose(output, 1,2)
@@ -293,6 +292,8 @@ class Experiment(object):
         plt.savefig(os.path.join(self.__experiment_dir, "bleu4_hist.png"))
         plt.show()
         test_loss = run_loss / len(self.__test_loader)
+        test_stats = [test_loss, mean(bleu1), mean(bleu4)]
+        write_to_file_in_dir(self.__experiment_dir, 'test_stats.txt', test_stats)
         print(f'Avg Test Loss: {test_loss}')
 
     def __save_model(self):
