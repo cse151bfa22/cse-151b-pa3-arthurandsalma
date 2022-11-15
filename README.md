@@ -2,12 +2,13 @@
 
 
 ## Contributors
-<TODO>
 
+<TODO>
 
 ## Task
-<TODO>
 
+  Our goal is to build an image captioning model using the Pytorch deep learning library. Image captioning consist of inputting an image to a model 
+that outputs a caption summarising the content of the image. Image captioning models consist of 2 main components: a Convolutional Neural Network encoder and a long short-term memory decoder. For this work, we are using the Common Objects in Context (COCO)2015 Image Captioning task dataset, be trained to  decoder the caption using a mechanism called Teacher Forcing. 
 
 ## How to run
 <TODO>
