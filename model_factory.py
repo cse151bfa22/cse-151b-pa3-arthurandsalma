@@ -147,11 +147,11 @@ class CNN_LSTM(nn.Module):
                 # print(f'Output size at line 144: {out.size()}')
                 # get argmax or torch multinomial sample
                 if self.deterministic:
-                    out = self.softmax(out, dim=2)
+                    out = self.softmax(out)
                     out = torch.argmax(out, dim=1)
                 else:
-                    temp_out = self.softmax(out / self.temp, dim=2)
-                    idx = torch.multinomial(temp_out, num_samples=1)
+                    temp_out = self.softmax(out / self.temp)
+                    idx = torch.multinomial(out / self.temp, num_samples=1)
                     out = out[idx]
                 if i == 0:
                     res = out

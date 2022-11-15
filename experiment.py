@@ -152,10 +152,8 @@ class Experiment(object):
             if torch.cuda.is_available():
                 images, labels = images.cuda(), labels.cuda()
             self.__optimizer.zero_grad()
-            ##Forward pass is done within compute_loss, no need to do here
-            outputs = self.__model(images, labels, teacher_forcing=True)
             
-            loss = self.__compute_loss(images, labels, outputs)
+            loss = self.__compute_loss(images, labels)
             loss.backward()
 
             self.__optimizer.step()
