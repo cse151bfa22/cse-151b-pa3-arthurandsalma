@@ -99,7 +99,6 @@ class CNN_LSTM(nn.Module):
                         hidden_size=self.hidden_size,
                         num_layers=2,
                         batch_first=True)
-                        #proj_size=self.hidden_size)
         self.fc = nn.Linear(in_features=self.hidden_size, out_features=len(self.vocab))
         self.softmax = nn.Softmax(2)
 

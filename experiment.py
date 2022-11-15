@@ -132,13 +132,12 @@ class Experiment(object):
                 self.__lr_scheduler.step()
         self.__model.load_state_dict(self.__best_model)
 
-    def __compute_loss(self, images, captions, output = None):
+    def __compute_loss(self, images, captions):
         """
         Computes the loss after a forward pass through the model
         Forward pass is performed within the model
         """
-        if output is None:
-            output = self.__model(images, captions, teacher_forcing=True)
+        output = self.__model(images, captions, teacher_forcing=True)
         output = torch.transpose(output, 1,2)
         return self.__criterion(output, captions)
 
@@ -181,7 +180,7 @@ class Experiment(object):
         Returns:
             tuple (list of original captions, predicted caption)
         """
-        captionDict, orig = None, None
+        captionDict = None
         if testing:
             captionDict  = self.__coco_test.imgToAnns[img_id]
             captionDict = [word_tokenize(caption['caption'].lower()) for caption in captionDict]
@@ -191,7 +190,7 @@ class Experiment(object):
 
         pred = []
         for output in outputs:
-            pred.append(self.__vocab.idx2word[np.argmax(output).item()])
+            pred.append(self.__vocab.idx2word[output])
         print(self.__str_captions(img_id, captionDict,pred))
         return (captionDict, pred)
 
@@ -214,7 +213,7 @@ class Experiment(object):
                 images, labels, image_IDs = data
                 if torch.cuda.is_available():
                     images, labels = images.cuda(), labels.cuda()
-                outputs = self.__model(images, labels, teacher_forcing=True)
+                outputs = self.__model(images, labels, teacher_forcing=False)
                 loss = self.__compute_loss(images, labels, outputs)
 
                 run_loss += loss.item()
@@ -248,7 +247,6 @@ class Experiment(object):
                 images, labels, image_IDs = data
                 if torch.cuda.is_available():
                     images, labels = images.cuda(), labels.cuda()
-                outputs = self.__model(images, labels, teacher_forcing = True)
                 loss = self.__compute_loss(images, labels)
 
                 run_loss += loss.item()
@@ -257,18 +255,11 @@ class Experiment(object):
                     run_avg_loss = run_loss / (i)
                     print(run_avg_loss)
                     
+                outputs = self.__model(images, labels, teacher_forcing = False)
                 outputs = outputs.cpu()
-
                 for idx in range(len(image_IDs)):
                     if image_IDs[idx] not in uniqueImageIDs:
                         captionDict, pred = self.__generate_captions(image_IDs[idx], outputs[idx], testing=True)
-                        # print("captionDict:") # We need to turn the following sentences into tokens using coco_dataset.py's __getitem__
-                        # """
-                        # [{'image_id': 134552, 'id': 720688, 'caption': 'A woman standing on a tennis court holding a racquet.'}, {'image_id': 134552, 'id': 725977, 'caption': 'A picture of a female tennis player. '}, {'image_id': 134552, 'id': 726409, 'caption': 'A woman in a tennis outfit holds a racket.'}, {'image_id': 134552, 'id': 730024, 'caption': 'A female tennis player holding a tennis racket.'}, {'image_id': 134552, 'id': 731026, 'caption': 'She is well prepared to participate in the tennis match.'}]
-                        # """
-                        # print(captionDict)
-                        # print("pred:")
-                        # print(pred)
                         pred = list(filter(filterTokens, pred))
                         captions.append(self.__str_captions(image_IDs[idx], captionDict,pred))
                         bleu1.append(caption_utils.bleu1(captionDict,pred))
