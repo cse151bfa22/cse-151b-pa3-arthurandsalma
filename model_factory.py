@@ -151,7 +151,7 @@ class CNN_LSTM(nn.Module):
                     out = torch.argmax(out, dim=1)
                 else:
                     temp_out = self.softmax(out / self.temp)
-                    idx = torch.multinomial(out / self.temp, num_samples=1)
+                    idx = torch.multinomial(temp_out, num_samples=1)
                     out = out[idx]
                 if i == 0:
                     res = out
