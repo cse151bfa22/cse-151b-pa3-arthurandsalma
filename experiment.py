@@ -292,7 +292,7 @@ class Experiment(object):
         plt.savefig(os.path.join(self.__experiment_dir, "bleu4_hist.png"))
         plt.show()
         test_loss = run_loss / len(self.__test_loader)
-        test_stats = [test_loss, mean(bleu1), mean(bleu4)]
+        test_stats = [test_loss, sum(bleu1)/len(bleu1), sum(bleu4)/len(bleu4)]
         write_to_file_in_dir(self.__experiment_dir, 'test_stats.txt', test_stats)
         print(f'Avg Test Loss: {test_loss}')
 
