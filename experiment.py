@@ -74,7 +74,6 @@ class Experiment(object):
         # Load Experiment Data if available
         self.__load_experiment()
 
-#         raise NotImplementedError()
 
     # Loads the experiment data if exists to resume training from last saved checkpoint.
     def __load_experiment(self):
@@ -153,9 +152,6 @@ class Experiment(object):
             images, labels, image_IDs = data
             if torch.cuda.is_available():
                 images, labels = images.cuda(), labels.cuda()
-            # print(f'Input size:  {images.size()}')
-            # print(f'Labels size:  {labels.size()}')
-            # print(f'Image IDs count:  {len(image_IDs)}')
             self.__optimizer.zero_grad()
             ##Forward pass is done within compute_loss, no need to do here
             outputs = self.__model(images, labels, teacher_forcing=True)
@@ -245,7 +241,7 @@ class Experiment(object):
             else:
                 return True
         run_loss = 0
-        bleu1, bleu4 = [], []
+        bleu1, bleu4, captions = [], [], []
         with torch.no_grad():
             uniqueImageIDs = set()
             for i, data in enumerate(self.__test_loader):
@@ -274,11 +270,13 @@ class Experiment(object):
                         # print("pred:")
                         # print(pred)
                         pred = list(filter(filterTokens, pred))
+                        captions.append(self.__str_captions(image_IDs[idx], captionDict,pred))
                         bleu1.append(caption_utils.bleu1(captionDict,pred))
                         bleu4.append(caption_utils.bleu4(captionDict,pred))
                         uniqueImageIDs.add(image_IDs[idx])
         write_to_file_in_dir(self.__experiment_dir, 'bleu1.txt', bleu1)
         write_to_file_in_dir(self.__experiment_dir, 'bleu4.txt', bleu4)
+        write_to_file_in_dir(self.__experiment_dir, 'testcaptions.txt', captions)
         plt.figure()
         plt.hist(bleu1)
         plt.xlabel("Bleu-1 Score")
