@@ -133,7 +133,6 @@ class CNN_LSTM(nn.Module):
             # (in non teacher forcing u won't concat)
             out = self.cnn(images)
             out = out.unsqueeze(1)
-            out = self.embed(out)
             h,c = None, None
             for i in range(self.max_length):
                 # in each iteration, u want to get image embeddings
@@ -145,23 +144,21 @@ class CNN_LSTM(nn.Module):
                 # pass thru fully connected
                 out = self.fc(out)
                 # pass thru softmax
-                # print(f'Output size at line 144: {out.size()}')
                 # get argmax or torch multinomial sample
                 if self.deterministic:
                     out = self.softmax(out)
-                    out = torch.argmax(out, dim=1)
+                    idx = torch.argmax(out, dim=1)
                 else:
                     temp_out = self.softmax(out / self.temp)
-                    idx = torch.multinomial(temp_out, num_samples=1)
-                    out = out[idx]
+                    temp_out = torch.flatten(temp_out, 1)
+                    idx = torch.multinomial(temp_out, num_samples=1).squeeze(1)
                 if i == 0:
-                    res = out
+                    res = torch.reshape(idx, (-1, 1))
                 else:
-                    res = torch.cat((res, out), dim=1)
+                    res = torch.cat((res, torch.reshape(idx, (-1, 1))), dim=1)
                 # that gives indeces
-                # print(f'Output size at line 155: {out.size()}')
-                # print(f'Res size at line 155: {res.size()}')
-                out = self.embed(out)
+                out = self.embed(idx)
+                out = out.unsqueeze(1)
                 # pass index thru embedding layer, and that becomes input for next iter
             return res
 

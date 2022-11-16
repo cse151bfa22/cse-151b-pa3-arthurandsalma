@@ -188,7 +188,7 @@ class Experiment(object):
 
         pred = []
         for output in outputs:
-            pred.append(self.__vocab.idx2word[output])
+            pred.append(self.__vocab.idx2word[output.item()])
         print(self.__str_captions(img_id, captionDict,pred))
         return (captionDict, pred)
 
@@ -212,13 +212,11 @@ class Experiment(object):
                 if torch.cuda.is_available():
                     images, labels = images.cuda(), labels.cuda()
                 outputs = self.__model(images, labels, teacher_forcing=False)
-                loss = self.__compute_loss(images, labels, outputs)
+                loss = self.__compute_loss(images, labels)
 
                 run_loss += loss.item()
                 outputs = outputs.cpu()
                 captionDict, pred = self.__generate_captions(image_IDs[0], outputs[0], testing=False)
-                captionDict, pred = self.__generate_captions(image_IDs[15], outputs[15], testing=False)
-                captionDict, pred = self.__generate_captions(image_IDs[19], outputs[19], testing=False)
                 if i % 100==1:
                     run_avg_loss = run_loss / (i)
                     print(f'Avg loss at batch {i}: {run_avg_loss}')
